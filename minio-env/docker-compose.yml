@@ -1,0 +1,16 @@
+
+services:
+  minio:
+    image: minio/minio:latest
+    container_name: minio-secure
+    ports:
+      - "9000:9000" 
+      - "9001:9001" 
+    environment:
+      - MINIO_ROOT_USER=admin4040
+      - MINIO_ROOT_PASSWORD=SuperSecurePassword123!
+    volumes:
+      - ./data:/data:Z
+      - ./certs:/root/.minio/certs:Z
+    command: server /data --console-address ":9001"
+    restart: unless-stopped

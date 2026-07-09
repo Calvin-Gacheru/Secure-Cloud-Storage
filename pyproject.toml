@@ -1,0 +1,9 @@
+[project]
+name = "secure-cloud-storage"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11.15"
+dependencies = [
+    "requests>=2.34.2",
+]
