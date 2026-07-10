@@ -10,3 +10,6 @@ wheels/
 .venv
 minio-env/certs/
 minio-env/data/
+minio-env/data/.minio.sys
+
+
