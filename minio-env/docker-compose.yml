@@ -7,8 +7,9 @@ services:
       - "9000:9000" 
       - "9001:9001" 
     environment:
-      - MINIO_ROOT_USER=admin4040
+      - MINIO_ROOT_USER=admin4030
       - MINIO_ROOT_PASSWORD=SuperSecurePassword123!
+      - MINIO_KMS_SECRET_KEY=my-minio-key:XTp6urxoHlNxgBq5trWkKsV1k1HXZro358VQx4Mw97I=
     volumes:
       - ./data:/data:Z
       - ./certs:/root/.minio/certs:Z
