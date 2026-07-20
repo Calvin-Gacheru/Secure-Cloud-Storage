@@ -3,7 +3,8 @@ This project's aim is to provide a secure cloud storage solution that ensures da
 
 - **MinIO**: An open-source object storage server that is compatible with Amazon S3 APIs. It will be used to store and manage data securely.
 - **Docker**: A platform for developing, shipping, and running applications in containers. It will be used to deploy the MinIO server and other components of the storage solution.
-- **OpenSSL**: A robust toolkit for implementing SSL and TLS protocols. It will be used to encrypt data in transit and ensure secure communication between clients and the storage server.
+- **OpenSSL**: OpenSSL is a powerful toolkit used to implement SSL and TLS protocols. In this project, it will be used to encrypt data while it is being transmitted, ensuring secure communication between clients and the storage server.
+
 
 ## Step 1: Setting Up the Environment
 
@@ -71,7 +72,7 @@ mc admin user add localminio Finance_User FinPwd123! --insecure
   }]
 }
 ```
-This JSON policy allows the HR_User to perform any action on the `hr-data` bucket and its contents. Similar policies can be created for the Finance_User to restrict access to the `finance-data` bucket. To apply these policies, we will use the `mc` command-line tool to set the policies for each user.
+This JSON policy allows the HR_User to perform any action on the `hr-data` bucket and its contents. Similar policies can be created for the Finance_User to restrict access to the `finance-data` bucket. To apply these policies, we will use the `mc` command-line tool to set the policies for each user
 ```bash
 mc admin policy create localminio hr-access hr-policy.json --insecure
 mc admin policy attach localminio hr-access --user HR_User --insecure
