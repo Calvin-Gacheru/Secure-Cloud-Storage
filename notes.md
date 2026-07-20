@@ -19,7 +19,7 @@ openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
 
 ```
 - The above command generates a self-signed SSL/TLS certificate and a private key. The certificate is valid for 365 days and is stored in the `certs` directory.
-- Why we do this: Generating SSL/TLS certificates is crucial for encrypting data in transit. It ensures that any data sent between the client and the server is secure and cannot be intercepted by malicious actors. 
+- Why we do this:Creating SSL/TLS certificates is essential for protecting data during transmission. These certificates encrypt communication between the client and the server, preventing unauthorized parties from accessing or intercepting the exchanged information. 
 
 2) **Creating the Docker Compose File**
 
