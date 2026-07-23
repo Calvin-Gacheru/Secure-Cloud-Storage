@@ -13,55 +13,75 @@ This project's aim is to provide a secure cloud storage solution that ensures da
 
 ---
 
-### System Architecture Diagram
-```
+### System Architecure Design
 
-                               +---------------------------------------+
-                               |          CLIENT / ACCESS LAYER        |
-                               |                                       |
-  [ Python Script ]            |    [ Web Browser ]    [ Terminal ]    |
-  (data_generator.py) -------> |      (MinIO UI)        ('mc' CLI)     |
-    Generates 100k             |     Port: 9001         Port: 9000     |
-    records (CSV)              +-----------+------------------+--------+
-                                           |                  |
-                                           v                  v
-                               +---------------------------------------+
-                               |     NETWORK & SECURITY ENFORCEMENT    |
-                               |                                       |
-                               |  TLS/HTTPS (OpenSSL Certificates)     |
-                               |  IAM & RBAC (JSON Policies)           |
-                               +-------------------+-------------------+
-                                                   |
-                                                   v
-+-----------------------------------------------------------------------------------+
-|  DOCKER HOST (Fedora Linux)                                                       |
-|                                                                                   |
-|    +-------------------------------------------------------------------------+    |
-|    |  MINIO CONTAINER (quay.io/minio/minio)                                  |    |
-|    |                                                                         |    |
-|    |  +-------------------+  +-------------------+  +---------------------+  |    |
-|    |  | S3 API Endpoint   |  |   IAM Engine      |  | Audit / Trace Log   |  |    |
-|    |  | (Listens on 9000) |  | (Validates Roles) |  | (Captures 403/200)  |  |    |
-|    |  +-------------------+  +-------------------+  +---------------------+  |    |
-|    |                                 |                                       |    |
-|    |                                 v                                       |    |
-|    |  +-------------------------------------------------------------------+  |    |
-|    |  |                  ENCRYPTION LAYER (SSE-S3)                        |  |    |
-|    |  |            (KMS Secret Key via Environment Variables)             |  |    |
-|    |  +-------------------------------------------------------------------+  |    |
-|    |                                 |                                       |    |
-|    |                                 v                                       |    |
-|    |  +------------------------------+------------------------------------+  |    |
-|    |  |  [ hr-data Bucket ]                    [ finance-data Bucket ]    |  |    |
-|    +--+-------------------------------------------------------------------+--+    |
-|                                      |                                            |
-|                                      v                                            |
-|    +---------------------------------+------------------------------------+       |
-|    |                       PERSISTENT STORAGE                             |       |
-|    |       Host Volumes: ./data (Objects) & ./certs (SSL Keys)            |       |
-|    +----------------------------------------------------------------------+       |
-+-----------------------------------------------------------------------------------+
+```mermaid
+flowchart LR
+    %% Global Styling
+    classDef layerFill fill:#f4f4f5,stroke:#a1a1aa,stroke-width:2px,color:#18181b,font-weight:bold;
+    classDef containerFill fill:#eff6ff,stroke:#3b82f6,stroke-width:2px,color:#1e3a8a,font-weight:bold;
+    classDef componentFill fill:#ffffff,stroke:#cbd5e1,stroke-width:1px,color:#334155;
+
+    Script["Python Script (data_generator.py)"]:::componentFill
+
+    subgraph ClientLayer ["CLIENT / ACCESS LAYER"]
+        direction TB
+        Browser["Web Browser (Port: 9001)"]:::componentFill
+        Terminal["Terminal ('mc' CLI)"]:::componentFill
+    end
+
+    subgraph NetLayer ["NETWORK & SECURITY"]
+        direction TB
+        Security["TLS/HTTPS & IAM/RBAC policies"]:::componentFill
+    end
+
+    subgraph DockerHost ["DOCKER HOST (Fedora Linux)"]
+        direction TB
+        subgraph MinIO ["MINIO CONTAINER"]
+            direction TB
+            API["S3 API Endpoint"]:::componentFill
+            Engine["IAM Engine"]:::componentFill
+            Logs["Audit / Trace Log"]:::componentFill
+            Encryption["SSE-S3 KMS Encryption"]:::componentFill
+            Buckets["hr-data & finance-data Buckets"]:::componentFill
+        end
+        Storage["PERSISTENT STORAGE (./data, ./certs)"]:::componentFill
+    end
+
+    Script --> ClientLayer
+    ClientLayer --> NetLayer
+    NetLayer --> API
+    API --> Engine
+    Engine --> Logs & Encryption
+    Encryption --> Buckets
+    Buckets --> Storage
+
+    class ClientLayer,NetLayer,DockerHost layerFill;
+    class MinIO containerFill;
 ```
+#### Component Breakdown
+
+1) Client / Access Layer:
+
+- **Python Data Generator**: Simulates external data ingestion by creating a 100,000-record CSV dataset (document_metadata.csv).
+- **MinIO Console (Web Browser)**: The graphical interface (Port 9001) used by end-users (like Finance_User) to interact with their data securely.
+- **MinIO Client (mc CLI)**: The command-line tool (Port 9000) used by administrators for Infrastructure as Code (IaC) tasks, IAM policy assignment, and live audit tracing.
+
+2) Network & Security Enforcement Layer:
+
+- **OpenSSL**: Provides self-signed certificates mounted into the container, forcing all traffic over HTTPS to prevent data interception.
+- **Identity & Access ManagemPent (IAM)**: Enforces strict Role-Based Access Control (RBAC) via custom JSON policies, ensuring users can only read/write to their department's assigned bucket.
+
+3) Application & Container Layer:
+
+- **Docker Engine**: Hosts the MinIO server in an isolated container environment, ensuring consistent runtime and dependency management.
+- **Audit / Trace Log**: An active monitoring component that captures API requests in real-time, instantly logging 403 Forbidden errors when unauthorized access is attempted.
+
+4) Storage & Encryption Layer:
+
+- **Server-Side Encryption (SSE-S3)**: Automatically encrypts all objects at rest as they hit the storage layer, managed by a static KMS secret key passed through Docker environment variables.
+- **Persistent Storage (Host Volumes)**: Maps the ephemeral container directories (/data and /root/.minio/certs) to local directories on the host OS (Fedora) to prevent data loss if the container is destroyed.
+
 ---
 
 In this first step, we will set up the environment required for our secure cloud storage solution. This includes installing Docker and Docker Compose, generating SSL/TLS certificates, and creating a `docker-compose.yml` file to spin up a standalone MinIO instance. 
