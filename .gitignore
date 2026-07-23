@@ -12,4 +12,5 @@ minio-env/certs/
 minio-env/data/
 minio-env/data/.minio.sys
 
+minio-env/data/
 
